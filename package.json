@@ -7,11 +7,13 @@
   "scripts": {
     "test": "vitest run -- --manifest-path ./Clarinet.toml",
     "test:reports": "vitest run -- --coverage --costs",
-    "test:watch": "chokidar \"unit-tests/**/*.ts\" \"contracts/**/*.clar\" -c \"npm t\""
+    "test:watch": "chokidar \"unit-tests/**/*.ts\" \"contracts/**/*.clar\" -c \"npm t\"",
+    "eol": "npx eolConverter \"contracts/**/*.clar\""
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "eol-converter-cli": "^1.0.8",
     "@hirosystems/clarinet-sdk": "^1.0.4",
     "@stacks/transactions": "^6.8.1",
     "chokidar-cli": "^3.0.0",
