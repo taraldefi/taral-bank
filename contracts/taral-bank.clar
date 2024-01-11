@@ -286,7 +286,7 @@
 
       (let 
         (
-            (interest-transfer-result (contract-call? 'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt transfer 
+            (interest-transfer-result (contract-call? .token-susdt transfer 
                                         interest-for-payment
                                         (get borrower-id po) 
                                         (var-get contract-owner)
@@ -298,7 +298,7 @@
           (begin 
             (let 
               (
-                (principal-transfer-result (contract-call? 'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt transfer outstanding-amount borrower-id lender-id none))
+                (principal-transfer-result (contract-call? .token-susdt transfer outstanding-amount borrower-id lender-id none))
               )
 
               (match principal-transfer-result
@@ -443,7 +443,7 @@
     ;; ensure the downpayment is less than the total amount
     (asserts! (< downpayment total-amount) (err ERR_DOWNPAYMENT_TOO_LARGE))
 
-    (if (is-ok (contract-call? 'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt transfer downpayment tx-sender (as-contract tx-sender) none))
+    (if (is-ok (contract-call? .token-susdt transfer downpayment tx-sender (as-contract tx-sender) none))
         (begin
 
           (ok (unwrap! (as-contract (contract-call? .taral-bank-storage set-purchase-order 
@@ -486,7 +486,7 @@
     ;; ensure only the lender can cancel their own financing offer
     (asserts! (or (is-eq tx-sender borrower-id) (is-eq tx-sender (var-get contract-owner))) (err ERR_UNAUTHORIZED))
 
-    (if (is-ok (as-contract (contract-call? 'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt transfer (get downpayment po) tx-sender borrower-id none)))
+    (if (is-ok (as-contract (contract-call? .token-susdt transfer (get downpayment po) tx-sender borrower-id none)))
         (begin
 
           (unwrap! (as-contract (contract-call? .taral-bank-storage delete-active-purchase-order borrower-id)) (err ERR_STORAGE_INTERACTION_FAILED))
@@ -519,7 +519,7 @@
     (asserts! (not (get has-active-financing po)) (err ERR_PO_HAS_ACTIVE_FINANCING))
 
     ;; Transfer the financing offer amount from the lender to the contract
-    (if (is-ok (contract-call? 'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt transfer total-amount tx-sender (as-contract tx-sender) none))
+    (if (is-ok (contract-call? .token-susdt transfer total-amount tx-sender (as-contract tx-sender) none))
         (begin
           (unwrap! (as-contract (contract-call? .taral-bank-storage update-purchase-order purchase-order-id (merge po { 
             updated-at: block-height,
@@ -566,7 +566,7 @@
 
     (let ((po-id (get purchase-order-id financing)))
       (let ((po (unwrap! (contract-call? .taral-bank-storage get-purchase-order-by-id po-id) (err ERR_PURCHASE_ORDER_NOT_FOUND))))
-        (if (is-ok (contract-call? 'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt transfer (get financing-amount financing) (as-contract tx-sender) lender-id none))
+        (if (is-ok (contract-call? .token-susdt transfer (get financing-amount financing) (as-contract tx-sender) lender-id none))
           (begin
             
             (unwrap! (as-contract (contract-call? .taral-bank-storage update-financing proposed-financing-id
@@ -627,9 +627,9 @@
 
     (asserts! (or (not (var-get contract-paused)) (is-eq tx-sender (var-get contract-owner))) (err ERR_CONTRACT_PAUSED))
     ;; Update purchase order with details from the accepted financing
-    (if (is-ok (as-contract (contract-call? 'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt transfer (get financing-amount financing) tx-sender (get seller-id po) none)))
+    (if (is-ok (as-contract (contract-call? .token-susdt transfer (get financing-amount financing) tx-sender (get seller-id po) none)))
         (begin
-          (if (is-ok (as-contract (contract-call? 'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt transfer (get downpayment po) tx-sender (get seller-id po) none)))
+          (if (is-ok (as-contract (contract-call? .token-susdt transfer (get downpayment po) tx-sender (get seller-id po) none)))
             (begin
 
               (unwrap! (as-contract (contract-call? .taral-bank-storage update-purchase-order (get purchase-order-id financing) (merge po 
@@ -668,7 +668,7 @@
         (begin
           
           (try! (as-contract (contract-call? 
-                  'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt transfer 
+                  .token-susdt transfer 
                   (get financing-amount financing) 
                   contract-caller 
                   lender-id 
