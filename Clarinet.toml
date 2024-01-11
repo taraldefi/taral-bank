@@ -10,12 +10,12 @@ boot_contracts = ["pox", "costs-v2"]
 contract_id = "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt"
 
 [contracts.taral-bank-storage]
-path = 'contracts/taral-bank-storage.clar'
+path = 'mainnet-contracts/taral-bank-storage.clar'
 clarity_version = 2
 epoch = 2.4
 
 [contracts.taral-bank]
-path = 'contracts/taral-bank.clar'
+path = 'mainnet-contracts/taral-bank.clar'
 clarity_version = 2
 epoch = 2.4
 

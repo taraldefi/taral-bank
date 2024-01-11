@@ -72,11 +72,11 @@ plan:
         - emulated-contract-publish:
             contract-name: taral-bank-storage
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: "contracts\\taral-bank-storage.clar"
+            path: "mainnet-contracts\\taral-bank-storage.clar"
             clarity-version: 2
         - emulated-contract-publish:
             contract-name: taral-bank
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: "contracts\\taral-bank.clar"
+            path: "mainnet-contracts\\taral-bank.clar"
             clarity-version: 2
       epoch: "2.4"
