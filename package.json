@@ -5,7 +5,7 @@
   "description": "This repository is a base template to kick-start any Clarity project and build Smart Contracts on Bitcoin. You can use it as template to create your own project.",
   "main": "index.js",
   "scripts": {
-    "test": "vitest run -- --manifest-path ./Clarinet.toml",
+    "test": "vitest run -- --manifest-path ./Clarinet.simnet.toml",
     "test:reports": "vitest run -- --coverage --costs",
     "test:watch": "chokidar \"unit-tests/**/*.ts\" \"contracts/**/*.clar\" -c \"npm t\"",
     "eol": "npx eolConverter \"contracts/**/*.clar\""

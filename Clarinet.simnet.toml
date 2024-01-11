@@ -6,14 +6,20 @@ telemetry = false
 cache_dir = 'contracts/external'
 boot_contracts = ["pox", "costs-v2"]
 
-[[project.requirements]]
-contract_id = "SP3HSPWMFYQS6S7BZ7KBNWMA059DV9S61X8EFSD6Y.trait-ownable"
+[contracts.trait-ownable]
+path = 'contracts/trait-ownable.clar'
+clarity_version = 2
+epoch = 2.4
 
-[[project.requirements]]
-contract_id = "SPZP1114C4EA044RE54M6G5ZC2NYK9SAK9SJN0M.trait-sip-010"
+[contracts.trait-sip-010]
+path = 'contracts/trait-sip-010.clar'
+clarity_version = 2
+epoch = 2.4
 
-[[project.requirements]]
-contract_id = "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt"
+[contracts.token-susdt]
+path = 'contracts/token-susdt.clar'
+clarity_version = 2
+epoch = 2.4
 
 [contracts.taral-bank-storage]
 path = 'contracts/taral-bank-storage.clar'

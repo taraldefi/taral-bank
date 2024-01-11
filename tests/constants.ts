@@ -1,0 +1,1 @@
+export const RUN_TARAL_BANK_BULLET_TESTS: boolean = true;
