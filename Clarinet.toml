@@ -3,7 +3,7 @@ name = 'taral-bank-mvp'
 description = 'Taral MVP bank contracts'
 authors = ["Taral team"]
 telemetry = false
-cache_dir = 'contracts/external'
+cache_dir = 'cache'
 boot_contracts = ["pox", "costs-v2"]
 
 [[project.requirements]]

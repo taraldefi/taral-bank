@@ -51,12 +51,12 @@ plan:
         - emulated-contract-publish:
             contract-name: trait-ownable
             emulated-sender: SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9
-            path: "contracts\\external\\requirements\\SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.trait-ownable.clar"
+            path: "cache\\requirements\\SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.trait-ownable.clar"
             clarity-version: 1
         - emulated-contract-publish:
             contract-name: trait-sip-010
             emulated-sender: SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9
-            path: "contracts\\external\\requirements\\SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.trait-sip-010.clar"
+            path: "cache\\requirements\\SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.trait-sip-010.clar"
             clarity-version: 1
       epoch: "2.05"
     - id: 1
@@ -64,7 +64,7 @@ plan:
         - emulated-contract-publish:
             contract-name: token-susdt
             emulated-sender: SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9
-            path: "contracts\\external\\requirements\\SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt.clar"
+            path: "cache\\requirements\\SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt.clar"
             clarity-version: 2
       epoch: "2.1"
     - id: 2
