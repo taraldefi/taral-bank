@@ -5,7 +5,6 @@ import { fastForwardDays, fastForwardMonths } from "./helpers/time";
 import { describeConditional } from "./describe.skip";
 import { RUN_TARAL_BANK_BULLET_TESTS } from "./constants";
 import { MICRO_MULTIPLIER } from "./helpers/currency";
-// import { hashStacksMessage, utf8ToBytes } from "lib-stacks";
 
 const describeOrSkip = describeConditional(RUN_TARAL_BANK_BULLET_TESTS);
 
@@ -172,10 +171,6 @@ describeOrSkip("Taral bank test flows", () => {
             [],
             WALLET_1,
         );
-
-        console.log('------------------------');
-        console.log(blockHeight);
-        console.log('------------------------');
 
         expect(getPurchaseOrder.result).toBeOk(Cl.tuple({
             "total-amount": Cl.uint(borrow * MICRO_MULTIPLIER),
@@ -685,7 +680,6 @@ describeOrSkip("Taral bank test flows", () => {
             ], WALLET_3
         );
 
-        // console.log(JSON.stringify(placeFinancingResult, null, 2));
         expect(placeFinancingResult.result).toBeOk(Cl.uint(financingId)); // financing id is 1
         expectSUSDTTransfer(placeFinancingResult.events[0].data, WALLET_3, DEPLOYER, borrow - downPayment);
 
@@ -1518,8 +1512,6 @@ describeOrSkip("Taral bank test flows", () => {
 
         let assetsMap = simnet.getAssetsMap();
 
-        console.log(JSON.stringify(assetsMap, null, 2));
-
         let balanceSUSDT = assetsMap.get('.token-susdt.bridged-usdt')!;
         let balanceSUSDTWallet1 = balanceSUSDT.get(WALLET_1)!;
         
@@ -1694,8 +1686,6 @@ describeOrSkip("Taral bank test flows", () => {
         expect(hasPoDefaulted.result).toBeOk(Cl.bool(false));
 
         let assetsMap = simnet.getAssetsMap();
-
-        console.log(JSON.stringify(assetsMap, null, 2));
 
         let balanceSUSDT = assetsMap.get('.token-susdt.bridged-usdt')!;
         let balanceSUSDTWallet1 = balanceSUSDT.get(WALLET_1)!;
