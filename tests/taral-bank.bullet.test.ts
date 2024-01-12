@@ -8,7 +8,6 @@ import { MICRO_MULTIPLIER } from "./helpers/currency";
 
 const describeOrSkip = describeConditional(RUN_TARAL_BANK_BULLET_TESTS);
 
-
 describeOrSkip("Taral bank test flows", () => {
     const borrow = 1100;
     const downPayment = 100;
@@ -21,17 +20,6 @@ describeOrSkip("Taral bank test flows", () => {
     const WALLET_3 = accounts.get("wallet_3")!;
     const WALLET_4 = accounts.get("wallet_4")!;
     const DEPLOYER = accounts.get("deployer")!;
-
-    console.log('=========================');
-    console.log('====== INFORMATION ======');
-    console.log('=========================');
-    console.log('Balances', simnet.getAssetsMap());
-    console.log('WALLET_1', WALLET_1);
-    console.log('WALLET_2', WALLET_2);
-    console.log('WALLET_3', WALLET_3);
-    console.log('DEPLOYER', DEPLOYER);
-    console.log('=========================');
-    console.log('=========================');
 
     it("Should be able to create and cancel a purchase order", () => {
         const purchaseOrderResult = simnet.callPublicFn(
