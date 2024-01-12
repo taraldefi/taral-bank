@@ -28,25 +28,35 @@ const processFile = (fileRequest: FileRequest) => {
 
     let result = data;
 
-    for (let key in fileRequest.replacements) {
-        if (fileRequest.replacements.hasOwnProperty(key)) {
-          let value = fileRequest.replacements[key];
-          console.log(`Replacing ${key} with ${value}`);
-          result = data.replace(/\key/g, value);
-          console.log(result);
+    const isDictionaryEmpty = (dict: { [id: string]: string }): boolean => {
+        return Object.keys(dict).length === 0;
+    };
+
+    let processed = false;
+
+    if (!isDictionaryEmpty(fileRequest.replacements)) {
+        for (let key in fileRequest.replacements) {
+            if (fileRequest.replacements.hasOwnProperty(key)) {
+                let value = fileRequest.replacements[key];
+                result = data.split(key).join(value);
+            }
         }
-      }
 
-    // Replace occurrences
-
-    // Ensure target directory exists
-    if (!existsSync(targetDir)) {
-        mkdirSync(targetDir);
+        processed = true;
     }
+    else {
+        console.log(`Nothing to process for ${fileName}`);
+    }
+    if (processed) {
+        // Ensure target directory exists
+        if (!existsSync(targetDir)) {
+            mkdirSync(targetDir);
+        }
 
-    // Write the file
-    writeFileSync(targetPath, result);
-    console.log(`File ${fileName} processed and saved to ${targetPath}`);
+        // Write the file
+        writeFileSync(targetPath, result);
+        console.log(`File ${fileName} processed and saved to ${targetPath}`);
+    }
 };
 
 const main = () => {
