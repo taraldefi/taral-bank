@@ -31,7 +31,9 @@ const processFile = (fileRequest: FileRequest) => {
     for (let key in fileRequest.replacements) {
         if (fileRequest.replacements.hasOwnProperty(key)) {
           let value = fileRequest.replacements[key];
+          console.log(`Replacing ${key} with ${value}`);
           result = data.replace(/\key/g, value);
+          console.log(result);
         }
       }
 
@@ -51,13 +53,13 @@ const main = () => {
 
     const fileRequests: FileRequest[] = [
         {
-            fileName: 'taral.bank.clar',
+            fileName: 'taral-bank.clar',
             replacements: {
-                "'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt'": "'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt'"
+                "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt": "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt"
             }
         },
         {
-            fileName: 'taral-bank-storage',
+            fileName: 'taral-bank-storage.clar',
             replacements: {}
         },
     ];
