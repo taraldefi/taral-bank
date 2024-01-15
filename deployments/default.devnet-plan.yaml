@@ -8,11 +8,48 @@ plan:
   batches:
     - id: 0
       transactions:
+        - requirement-publish:
+            contract-id: SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.trait-ownable
+            remap-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            remap-principals:
+              SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 1430
+            path: "cache\\requirements\\SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.trait-ownable.clar"
+            clarity-version: 1
+        - requirement-publish:
+            contract-id: SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.trait-sip-010
+            remap-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            remap-principals:
+              SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 13460
+            path: "cache\\requirements\\SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.trait-sip-010.clar"
+            clarity-version: 1
+      epoch: "2.05"
+    - id: 1
+      transactions:
+        - requirement-publish:
+            contract-id: SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt
+            remap-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            remap-principals:
+              SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 54840
+            path: "cache\\requirements\\SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt.clar"
+            clarity-version: 2
+      epoch: "2.1"
+    - id: 2
+      transactions:
         - contract-publish:
-            contract-name: counter
+            contract-name: taral-bank-storage
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 9740
-            path: contracts/counter.clar
+            cost: 108250
+            path: "mainnet-contracts\\taral-bank-storage.clar"
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: taral-bank
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 309320
+            path: "mainnet-contracts\\taral-bank.clar"
             anchor-block-only: true
             clarity-version: 2
       epoch: "2.4"
