@@ -78,7 +78,7 @@
 )
 
 
-(define-read-only (is-po-defaulted (purchase-order-id uint))
+(define-read-only (is-po-defaulted (purchase-order-id (string-utf8 36)))
   (match (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id)
     po
     (let 
@@ -122,7 +122,7 @@
   )
 )
 
-(define-read-only (get-payment-details (purchase-order-id uint))
+(define-read-only (get-payment-details (purchase-order-id (string-utf8 36)))
   (let ((po (unwrap-panic (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id)))
         (financing-id (unwrap-panic (get accepted-financing-id po))))
     (let ((financing (unwrap-panic (contract-call? .taral-bank-storage get-financing-offer-by-id financing-id))))
@@ -172,11 +172,16 @@
   )
 )
 
-(define-read-only (get-po-details (purchase-order-id uint))
+(define-read-only (get-po-details (purchase-order-id (string-utf8 36)))
   (let 
     (
+      (interest-rate-per-payment (/ (var-get protocol-interest-rate-per-annum) u4)) ;; monthly payment)))
       (po (unwrap-panic (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id)))
+      (borrower-id (get borrower-id po))
+
       (is-defaulted (unwrap! (is-po-defaulted purchase-order-id) (err COULD_NOT_UNWRAP)))
+      (outstanding-amount (get outstanding-amount po))
+      (interest-for-payment ( - (/ ( + (* outstanding-amount u100) (* outstanding-amount interest-rate-per-payment)) u100) outstanding-amount))          
     )
     (ok { 
       total-amount: (get total-amount po),
@@ -185,8 +190,10 @@
       is-completed: (get is-completed po),
       completed-successfully: (get completed-successfully po),
       accepted-financing-id: (get accepted-financing-id po),
+      proposed-financing-id: (get proposed-financing-id po),
       is-canceled: (get is-canceled po),
       has-active-financing: (get has-active-financing po),
+      interest: interest-for-payment,
       created-at: (get created-at po),
       updated-at: (get updated-at po),
       is-defaulted: is-defaulted
@@ -195,7 +202,7 @@
 )
 
 ;; Function to check if a purchase order has active financing offers
-(define-read-only (has-active-financing (purchase-order-id uint))
+(define-read-only (has-active-financing (purchase-order-id (string-utf8 36)))
   (let ((po (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id)))
     (match po
       po-data (is-eq (get has-active-financing po-data) true)
@@ -355,7 +362,7 @@
 
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
-(define-public (check-purchase-order-health (purchase-order-id uint))
+(define-public (check-purchase-order-health (purchase-order-id (string-utf8 36)))
   (let 
     (
       (po (unwrap-panic (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id)))
@@ -420,14 +427,14 @@
   )
 )
 
-(define-read-only (get-purchase-order-by-id (purchase-order-id uint))
+(define-read-only (get-purchase-order-by-id (purchase-order-id (string-utf8 36)))
     (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id)
 )
 
 ;; Create Purchase Order
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
-(define-public (create-purchase-order (total-amount-usdt uint) (downpayment-usdt uint) (seller-id principal))
+(define-public (create-purchase-order (external-id (string-utf8 36)) (total-amount-usdt uint) (downpayment-usdt uint) (seller-id principal))
   (let (
     (total-amount (* total-amount-usdt (var-get micro-multiplier)))
     (downpayment (* downpayment-usdt (var-get micro-multiplier)))
@@ -448,6 +455,7 @@
 
           (ok (unwrap! (as-contract (contract-call? .taral-bank-storage set-purchase-order 
             {
+              id: external-id,
               borrower-id: borrower,
               lender-id: none,
               seller-id: seller-id,
@@ -505,7 +513,7 @@
 
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
-(define-public (finance (purchase-order-id uint))
+(define-public (finance (purchase-order-id (string-utf8 36)))
   (let 
     (
       (po (unwrap! (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id) (err ERR_PURCHASE_ORDER_NOT_FOUND)))
@@ -689,33 +697,25 @@
 
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
-(define-private (end-purchase-order-successfully (purchase-order-id uint))
+(define-private (end-purchase-order-successfully (purchase-order-id (string-utf8 36)))
   (let (
         (po (unwrap! (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id) (err ERR_PURCHASE_ORDER_NOT_FOUND)))
         (lender-id (unwrap! (get lender-id po) (err ERR_NO_LENDER_ASSOCIATED_WITH_PURCHASE_ORDER)))
         (borrower-id (get borrower-id po))
         (seller-id (get seller-id po))
     )
-
-    ;; (unwrap! (contract-call? .taral-importer update-importer-track-record borrower-id true) (err ERR_FAILED_TO_UPDATE_BORROWER_TRACK_RECORD))
-    ;; (unwrap! (contract-call? .taral-exporter update-exporter-track-record seller-id true) (err ERR_FAILED_TO_UPDATE_SELLER_TRACK_RECORD))
-    ;; (unwrap! (contract-call? .taral-lender update-lender-track-record lender-id true) (err ERR_FAILED_TO_UPDATE_LENDER_TRACK_RECORD))
 
     (ok true)
   )
 )
 
-(define-private (end-purchase-order-unsuccessfully (purchase-order-id uint))
+(define-private (end-purchase-order-unsuccessfully (purchase-order-id (string-utf8 36)))
   (let (
         (po (unwrap! (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id) (err ERR_PURCHASE_ORDER_NOT_FOUND)))
         (lender-id (unwrap! (get lender-id po) (err ERR_NO_LENDER_ASSOCIATED_WITH_PURCHASE_ORDER)))
         (borrower-id (get borrower-id po))
         (seller-id (get seller-id po))
     )
-
-    ;; (unwrap! (contract-call? .taral-importer update-importer-track-record borrower-id false) (err ERR_FAILED_TO_UPDATE_BORROWER_TRACK_RECORD))
-    ;; (unwrap! (contract-call? .taral-exporter update-exporter-track-record seller-id false) (err ERR_FAILED_TO_UPDATE_SELLER_TRACK_RECORD))
-    ;; (unwrap! (contract-call? .taral-lender update-lender-track-record lender-id false) (err ERR_FAILED_TO_UPDATE_LENDER_TRACK_RECORD))
 
     (ok true)
   )
@@ -766,4 +766,3 @@
     )
   )
 )
-

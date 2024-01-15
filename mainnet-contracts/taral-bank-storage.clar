@@ -1,6 +1,5 @@
 
-;; Counter for Purchase Orders and financing offers
-(define-data-var next-purchase-order-id uint u1)
+;; Counter for Financing offers and Payments
 (define-data-var next-payment-id uint u1)
 (define-data-var next-financing-id uint u1)
 
@@ -13,12 +12,12 @@
 
 (define-map active-purchase-orders
   principal
-  uint
+  (string-utf8 36)
 )
 
 (define-map purchase-orders
   {
-    id: uint
+    id: (string-utf8 36)
   }
   {
     borrower-id: principal,
@@ -43,7 +42,7 @@
     id: uint
   }
   {
-    purchase-order-id: uint,
+    purchase-order-id: (string-utf8 36),
     financing-amount: uint,
     lender-id: principal,
     is-accepted: bool,
@@ -61,13 +60,13 @@
   }
   {
     borrower-id: principal,
-    purchase-order-id: uint,
+    purchase-order-id: (string-utf8 36),
     amount: uint,
     block: uint,
   }
 )
 
-(define-read-only (get-purchase-order-by-id (id uint))  
+(define-read-only (get-purchase-order-by-id (id (string-utf8 36)))  
   (map-get? purchase-orders { id: id })
 )
 
@@ -89,7 +88,7 @@
 
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
-(define-public (set-active-purchase-order (borrower-id principal) (purchase-order-id uint))
+(define-public (set-active-purchase-order (borrower-id principal) (purchase-order-id (string-utf8 36)))
   (begin 
     (asserts! (is-eq tx-sender .taral-bank) (err ERR-UNAUTHORIZED-CONTRACT-CALLER)) ;; Error code if caller is not .taral-bank
     (map-set active-purchase-orders borrower-id purchase-order-id)
@@ -110,7 +109,7 @@
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
 (define-public (update-financing (financing-id uint) (financing {
-  purchase-order-id: uint,
+    purchase-order-id: (string-utf8 36),
     financing-amount: uint,
     lender-id: principal,
     is-accepted: bool,
@@ -143,7 +142,7 @@
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
 (define-public (set-financing (financing {
-  purchase-order-id: uint,
+    purchase-order-id: (string-utf8 36),
     financing-amount: uint,
     lender-id: principal,
     is-accepted: bool,
@@ -188,7 +187,7 @@
 ;; #[allow(unchecked_data)]
 (define-public (set-payment (payment {
     borrower-id: principal,
-    purchase-order-id: uint,
+    purchase-order-id: (string-utf8 36),
     amount: uint,
     block: uint,
   }))
@@ -212,7 +211,7 @@
 
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
-(define-public (update-purchase-order (id uint) (po {
+(define-public (update-purchase-order (id (string-utf8 36)) (po {
   borrower-id: principal,
   lender-id: (optional principal),
   seller-id: principal,
@@ -260,6 +259,7 @@
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
 (define-public (set-purchase-order (po {
+  id: (string-utf8 36),
   borrower-id: principal,
   lender-id: (optional principal),
   seller-id: principal,
@@ -275,15 +275,12 @@
   created-at: uint,  ;; Timestamp of creation
   updated-at: uint,   ;; Timestamp of last update
 }))
-  (let (
-    (purchase-order-id (increment-next-purchase-order-id))
-  )
+  (begin 
+    (asserts! (is-eq tx-sender .taral-bank) (err ERR-UNAUTHORIZED-CONTRACT-CALLER)) ;; Error code if caller is not .taral-bank
 
-  (asserts! (is-eq tx-sender .taral-bank) (err ERR-UNAUTHORIZED-CONTRACT-CALLER)) ;; Error code if caller is not .taral-bank
-
-  (map-set purchase-orders 
+    (map-set purchase-orders 
                           {
-                            id: purchase-order-id
+                            id: (get id po)
                           }
                           {
                             borrower-id: (get borrower-id po),
@@ -303,19 +300,9 @@
                           }
                         )
 
-    (map-set active-purchase-orders (get borrower-id po) purchase-order-id)
+    (map-set active-purchase-orders (get borrower-id po) (get id po))
 
-    (ok purchase-order-id)
-  )
-)
-
-;; #[allow(unchecked_params)]
-;; #[allow(unchecked_data)]
-;; Implements a safe way to provide a valid ID for a purchase order
-(define-private (increment-next-purchase-order-id)
-  (let ((current-id (var-get next-purchase-order-id)))
-    (var-set next-purchase-order-id (+ current-id u1))
-    current-id
+    (ok (get id po))
   )
 )
 
