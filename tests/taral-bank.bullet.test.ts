@@ -5,13 +5,18 @@ import { fastForwardDays, fastForwardMonths } from "./helpers/time";
 import { describeConditional } from "./describe.skip";
 import { RUN_TARAL_BANK_BULLET_TESTS } from "./constants";
 import { MICRO_MULTIPLIER } from "./helpers/currency";
+// import { hashStacksMessage, utf8ToBytes } from "lib-stacks";
 
 const describeOrSkip = describeConditional(RUN_TARAL_BANK_BULLET_TESTS);
+
+const PURCHASE_ORDER_ID = '4bd10c63-67ac-43e0-8fc3-7727fc9bd642';
+
+const PURCHASE_ORDER_ID_1 = 'dda670dd-6b33-4f76-8780-09b156783954';
+
 
 describeOrSkip("Taral bank test flows", () => {
     const borrow = 1100;
     const downPayment = 100;
-    const purchaseOrderId = 1;
     const financingId = 1;
 
     const accounts = simnet.getAccounts();
@@ -21,11 +26,49 @@ describeOrSkip("Taral bank test flows", () => {
     const WALLET_4 = accounts.get("wallet_4")!;
     const DEPLOYER = accounts.get("deployer")!;
 
+    console.log('=========================');
+    console.log('====== INFORMATION ======');
+    console.log('=========================');
+    console.log('Balances', simnet.getAssetsMap());
+    console.log('WALLET_1', WALLET_1);
+    console.log('WALLET_2', WALLET_2);
+    console.log('WALLET_3', WALLET_3);
+    console.log('DEPLOYER', DEPLOYER);
+    console.log('=========================');
+    console.log('=========================');
+
+    it("Should not be able to cancel a purchase order if not the borrower", () => {
+        const purchaseOrderResult = simnet.callPublicFn(
+            "taral-bank",
+            "create-purchase-order",
+            [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
+                Cl.uint(borrow),
+                Cl.uint(downPayment),
+                Cl.standardPrincipal(WALLET_2)
+            ], WALLET_1
+        );
+
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
+        expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
+
+        const cancelPurchaseOrderResult = simnet.callPublicFn(
+            "taral-bank",
+            "cancel-purchase-order",
+            [],
+            WALLET_2
+        );
+
+        // can't do it, I don't own the PO
+        expect(cancelPurchaseOrderResult.result).toBeErr(Cl.uint(134));
+    }),
+
     it("Should be able to create and cancel a purchase order", () => {
         const purchaseOrderResult = simnet.callPublicFn(
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
@@ -35,14 +78,14 @@ describeOrSkip("Taral bank test flows", () => {
         let initialBlockHeight = simnet.blockHeight;
         let blockHeight = initialBlockHeight;
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID),);
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         const getPurchaseOrder = simnet.callReadOnlyFn(
             "taral-bank",
             "get-purchase-order-by-id",
-            [Cl.uint(purchaseOrderId)],
+            [Cl.stringUtf8(PURCHASE_ORDER_ID)],
             WALLET_1,
         );
 
@@ -69,7 +112,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "has-active-financing",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ],
             WALLET_1
         );
@@ -79,8 +122,7 @@ describeOrSkip("Taral bank test flows", () => {
         const cancelPurchaseOrderResult = simnet.callPublicFn(
             "taral-bank",
             "cancel-purchase-order",
-            [
-            ],
+            [],
             WALLET_1
         );
 
@@ -93,7 +135,7 @@ describeOrSkip("Taral bank test flows", () => {
         const getPurchaseOrderAfterCancel = simnet.callReadOnlyFn(
             "taral-bank",
             "get-purchase-order-by-id",
-            [Cl.uint(purchaseOrderId)],
+            [Cl.stringUtf8(PURCHASE_ORDER_ID)],
             WALLET_1,
         );
 
@@ -131,6 +173,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
@@ -140,7 +183,7 @@ describeOrSkip("Taral bank test flows", () => {
         let initialBlockHeight = simnet.blockHeight;
         let blockHeight = initialBlockHeight;
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
@@ -182,6 +225,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
@@ -191,14 +235,14 @@ describeOrSkip("Taral bank test flows", () => {
         let initialBlockHeight = simnet.blockHeight;
         let blockHeight = initialBlockHeight;
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         const getPurchaseOrder = simnet.callReadOnlyFn(
             "taral-bank",
             "get-purchase-order-by-id",
-            [Cl.uint(purchaseOrderId)],
+            [Cl.stringUtf8(PURCHASE_ORDER_ID)],
             WALLET_1,
         );
 
@@ -225,7 +269,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "has-active-financing",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ],
             WALLET_1
         );
@@ -235,8 +279,7 @@ describeOrSkip("Taral bank test flows", () => {
         const cancelPurchaseOrderResult = simnet.callPublicFn(
             "taral-bank",
             "cancel-purchase-order",
-            [
-            ],
+            [],
             WALLET_1
         );
 
@@ -249,7 +292,7 @@ describeOrSkip("Taral bank test flows", () => {
         const getPurchaseOrderAfterCancel = simnet.callReadOnlyFn(
             "taral-bank",
             "get-purchase-order-by-id",
-            [Cl.uint(purchaseOrderId)],
+            [Cl.stringUtf8(PURCHASE_ORDER_ID)],
             WALLET_1,
         );
 
@@ -274,13 +317,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID_1),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId + 1));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID_1));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
     }),
@@ -290,13 +334,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
@@ -304,6 +349,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID_1),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
@@ -318,13 +364,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
@@ -333,7 +380,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID)
             ], WALLET_1
         );
 
@@ -345,13 +392,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
@@ -360,7 +408,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_2
         );
 
@@ -372,36 +420,32 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
             ], WALLET_1
         );
 
-        let initialBlockHeight = simnet.blockHeight;
-        let blockHeight = initialBlockHeight;
-
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         const cancelPurchaseOrderResult = simnet.callPublicFn(
             "taral-bank",
             "cancel-purchase-order",
-            [
-            ],
+            [],
             WALLET_1
         );
 
         expect(cancelPurchaseOrderResult.result).toBeOk(Cl.bool(true));
-
-
+        
         // place a financing offer
         const placeFinancingResult = simnet.callPublicFn(
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -413,13 +457,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
@@ -428,7 +473,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -439,7 +484,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -451,6 +496,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
@@ -460,7 +506,7 @@ describeOrSkip("Taral bank test flows", () => {
         let initialBlockHeight = simnet.blockHeight;
         let blockHeight = initialBlockHeight;
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
@@ -469,7 +515,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -506,6 +552,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
@@ -515,7 +562,7 @@ describeOrSkip("Taral bank test flows", () => {
         let initialBlockHeight = simnet.blockHeight;
         let blockHeight = initialBlockHeight;
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
@@ -524,7 +571,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -550,6 +597,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
@@ -559,7 +607,7 @@ describeOrSkip("Taral bank test flows", () => {
         let initialBlockHeight = simnet.blockHeight;
         let blockHeight = initialBlockHeight;
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
@@ -568,7 +616,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -604,6 +652,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2)
@@ -613,7 +662,7 @@ describeOrSkip("Taral bank test flows", () => {
         let initialBlockHeight = simnet.blockHeight;
         let blockHeight = initialBlockHeight;
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
 
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
@@ -622,7 +671,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -650,13 +699,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         // place a financing offer
@@ -664,10 +714,11 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
+        // console.log(JSON.stringify(placeFinancingResult, null, 2));
         expect(placeFinancingResult.result).toBeOk(Cl.uint(financingId)); // financing id is 1
         expectSUSDTTransfer(placeFinancingResult.events[0].data, WALLET_3, DEPLOYER, borrow - downPayment);
 
@@ -691,6 +742,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment + borrow),
                 Cl.standardPrincipal(WALLET_2) // the seller
@@ -707,13 +759,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         // place a financing offer
@@ -721,7 +774,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -732,7 +785,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_4
         );
 
@@ -746,13 +799,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         // place a financing offer
@@ -760,7 +814,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -784,7 +838,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -797,13 +851,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         // place a financing offer
@@ -811,7 +866,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -834,7 +889,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -846,20 +901,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
-            ], WALLET_1
-        );
-
-
-        expect(hasPoDefaulted.result).toBeOk(Cl.bool(false));
-
-        fastForwardMonths(1);
-
-        hasPoDefaulted = simnet.callReadOnlyFn(
-            "taral-bank",
-            "is-po-defaulted",
-            [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -871,7 +913,19 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
+            ], WALLET_1
+        );
+
+        expect(hasPoDefaulted.result).toBeOk(Cl.bool(false));
+
+        fastForwardMonths(1);
+
+        hasPoDefaulted = simnet.callReadOnlyFn(
+            "taral-bank",
+            "is-po-defaulted",
+            [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -883,7 +937,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -895,13 +949,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         // place a financing offer
@@ -909,7 +964,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -932,7 +987,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -944,7 +999,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -957,7 +1012,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -969,7 +1024,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1009,7 +1064,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "get-payment-details",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1020,7 +1075,7 @@ describeOrSkip("Taral bank test flows", () => {
         const getPurchaseOrder = simnet.callReadOnlyFn(
             "taral-bank",
             "get-po-details",
-            [Cl.uint(purchaseOrderId)],
+            [Cl.stringUtf8(PURCHASE_ORDER_ID)],
             WALLET_1,
         );
 
@@ -1030,9 +1085,10 @@ describeOrSkip("Taral bank test flows", () => {
             "outstanding-amount": Cl.uint(0),
             "is-completed": Cl.bool(true),
             "accepted-financing-id": Cl.some(Cl.uint(1)),
+            "proposed-financing-id": Cl.some(Cl.uint(1)),
             "is-canceled": Cl.bool(false),
             "created-at": Cl.uint(2),
-
+            "interest": Cl.uint(0),
             "completed-successfully": Cl.bool(true),
             "has-active-financing": Cl.bool(true),
             "updated-at": Cl.uint(13397),
@@ -1043,7 +1099,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "check-purchase-order-health",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1058,13 +1114,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         // place a financing offer
@@ -1072,7 +1129,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -1095,7 +1152,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1107,7 +1164,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1120,7 +1177,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1132,7 +1189,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1172,7 +1229,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "get-payment-details",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1183,7 +1240,7 @@ describeOrSkip("Taral bank test flows", () => {
         const getPurchaseOrder = simnet.callReadOnlyFn(
             "taral-bank",
             "get-po-details",
-            [Cl.uint(purchaseOrderId)],
+            [Cl.stringUtf8(PURCHASE_ORDER_ID)],
             WALLET_1,
         );
 
@@ -1193,9 +1250,10 @@ describeOrSkip("Taral bank test flows", () => {
             "outstanding-amount": Cl.uint(0),
             "is-completed": Cl.bool(true),
             "accepted-financing-id": Cl.some(Cl.uint(1)),
+            "proposed-financing-id": Cl.some(Cl.uint(1)),
             "is-canceled": Cl.bool(false),
             "created-at": Cl.uint(2),
-
+            "interest": Cl.uint(0),
             "completed-successfully": Cl.bool(true),
             "has-active-financing": Cl.bool(true),
             "updated-at": Cl.uint(13397),
@@ -1206,7 +1264,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "check-purchase-order-health",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1219,13 +1277,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID_1),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId + 1));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID_1),);
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
     }),
 
@@ -1234,13 +1293,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         // place a financing offer
@@ -1248,7 +1308,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -1271,7 +1331,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1283,7 +1343,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1296,7 +1356,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1308,7 +1368,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1348,7 +1408,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "get-payment-details",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1371,13 +1431,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         // place a financing offer
@@ -1385,7 +1446,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -1419,13 +1480,15 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
+
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         // place a financing offer
@@ -1433,7 +1496,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -1456,7 +1519,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1468,7 +1531,20 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
+            ], WALLET_1
+        );
+
+
+        expect(hasPoDefaulted.result).toBeOk(Cl.bool(false));
+
+        fastForwardMonths(1);
+
+        hasPoDefaulted = simnet.callReadOnlyFn(
+            "taral-bank",
+            "is-po-defaulted",
+            [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1480,25 +1556,15 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
-            ], WALLET_1
-        );
-
-        expect(hasPoDefaulted.result).toBeOk(Cl.bool(false));
-
-        fastForwardMonths(1);
-
-        hasPoDefaulted = simnet.callReadOnlyFn(
-            "taral-bank",
-            "is-po-defaulted",
-            [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
         expect(hasPoDefaulted.result).toBeOk(Cl.bool(false));
 
         let assetsMap = simnet.getAssetsMap();
+
+        console.log(JSON.stringify(assetsMap, null, 2));
 
         let balanceSUSDT = assetsMap.get('.token-susdt.bridged-usdt')!;
         let balanceSUSDTWallet1 = balanceSUSDT.get(WALLET_1)!;
@@ -1539,7 +1605,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "check-purchase-order-health",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1556,21 +1622,21 @@ describeOrSkip("Taral bank test flows", () => {
         );
 
         expect(makePaymentResult.result).toBeErr(Cl.uint(130)); // cannot make payments anymore, po is defaulted
-
         hasPoDefaulted = simnet.callReadOnlyFn(
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
         expect(hasPoDefaulted.result).toBeOk(Cl.bool(true));
 
+
         const getPurchaseOrder = simnet.callReadOnlyFn(
             "taral-bank",
             "get-po-details",
-            [Cl.uint(purchaseOrderId)],
+            [Cl.stringUtf8(PURCHASE_ORDER_ID)],
             WALLET_1,
         );
 
@@ -1580,7 +1646,9 @@ describeOrSkip("Taral bank test flows", () => {
             "outstanding-amount": Cl.uint(1000 * MICRO_MULTIPLIER),
             "is-completed": Cl.bool(true),
             "accepted-financing-id": Cl.some(Cl.uint(1)),
+            "proposed-financing-id": Cl.some(Cl.uint(1)),
             "is-canceled": Cl.bool(false),
+            "interest": Cl.uint(30000000),
             "created-at": Cl.uint(2),
             "completed-successfully": Cl.bool(false),
             "has-active-financing": Cl.bool(true),
@@ -1594,13 +1662,14 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
             ], WALLET_1
         );
 
-        expect(purchaseOrderResult.result).toBeOk(Cl.uint(purchaseOrderId));
+        expect(purchaseOrderResult.result).toBeOk(Cl.stringUtf8(PURCHASE_ORDER_ID));
         expectSUSDTTransfer(purchaseOrderResult.events[0].data, WALLET_1, DEPLOYER, downPayment);
 
         // place a financing offer
@@ -1608,7 +1677,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "finance",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_3
         );
 
@@ -1631,7 +1700,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1643,7 +1712,20 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
+            ], WALLET_1
+        );
+
+
+        expect(hasPoDefaulted.result).toBeOk(Cl.bool(false));
+
+        fastForwardMonths(1);
+
+        hasPoDefaulted = simnet.callReadOnlyFn(
+            "taral-bank",
+            "is-po-defaulted",
+            [
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1655,25 +1737,15 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
-            ], WALLET_1
-        );
-
-        expect(hasPoDefaulted.result).toBeOk(Cl.bool(false));
-
-        fastForwardMonths(1);
-
-        hasPoDefaulted = simnet.callReadOnlyFn(
-            "taral-bank",
-            "is-po-defaulted",
-            [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
         expect(hasPoDefaulted.result).toBeOk(Cl.bool(false));
 
         let assetsMap = simnet.getAssetsMap();
+
+        console.log(JSON.stringify(assetsMap, null, 2));
 
         let balanceSUSDT = assetsMap.get('.token-susdt.bridged-usdt')!;
         let balanceSUSDTWallet1 = balanceSUSDT.get(WALLET_1)!;
@@ -1714,7 +1786,7 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "check-purchase-order-health",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
@@ -1736,39 +1808,39 @@ describeOrSkip("Taral bank test flows", () => {
             "taral-bank",
             "is-po-defaulted",
             [
-                Cl.uint(purchaseOrderId),
+                Cl.stringUtf8(PURCHASE_ORDER_ID),
             ], WALLET_1
         );
 
         expect(hasPoDefaulted.result).toBeOk(Cl.bool(true));
-
-
         const getPurchaseOrder = simnet.callReadOnlyFn(
             "taral-bank",
             "get-po-details",
-            [Cl.uint(purchaseOrderId)],
+            [Cl.stringUtf8(PURCHASE_ORDER_ID)],
             WALLET_1,
         );
 
         expect(getPurchaseOrder.result).toBeOk(Cl.tuple({
-            "total-amount": Cl.uint(borrow * MICRO_MULTIPLIER),
-            "downpayment": Cl.uint(downPayment * MICRO_MULTIPLIER),
-            "outstanding-amount": Cl.uint(1000 * MICRO_MULTIPLIER),
-            "is-completed": Cl.bool(true),
-            "accepted-financing-id": Cl.some(Cl.uint(1)),
-            "is-canceled": Cl.bool(false),
             "created-at": Cl.uint(2),
-
+            "downpayment": Cl.uint(downPayment * MICRO_MULTIPLIER),
+            "interest": Cl.uint(30000000),
+            "is-canceled": Cl.bool(false),
+            "is-completed": Cl.bool(true),
+            "is-defaulted": Cl.bool(true),
+            "outstanding-amount": Cl.uint(1000 * MICRO_MULTIPLIER),
+            "proposed-financing-id": Cl.some(Cl.uint(1)),
+            "total-amount": Cl.uint(borrow * MICRO_MULTIPLIER),
+            "updated-at": Cl.uint(14263),
+            "accepted-financing-id": Cl.some(Cl.uint(1)),
             "completed-successfully": Cl.bool(false),
             "has-active-financing": Cl.bool(true),
-            "updated-at": Cl.uint(14263),
-            "is-defaulted": Cl.bool(true)
         }));
 
         purchaseOrderResult = simnet.callPublicFn(
             "taral-bank",
             "create-purchase-order",
             [
+                Cl.stringUtf8(PURCHASE_ORDER_ID_1),
                 Cl.uint(borrow),
                 Cl.uint(downPayment),
                 Cl.standardPrincipal(WALLET_2) // the seller
