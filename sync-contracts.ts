@@ -47,14 +47,16 @@ const processFile = (fileRequest: FileRequest) => {
     else {
         console.log(`Nothing to process for ${fileName}`);
     }
-    if (processed) {
-        // Ensure target directory exists
-        if (!existsSync(targetDir)) {
-            mkdirSync(targetDir);
-        }
 
-        // Write the file
-        writeFileSync(targetPath, result);
+    // Ensure target directory exists
+    if (!existsSync(targetDir)) {
+        mkdirSync(targetDir);
+    }
+
+    // Write the file
+    writeFileSync(targetPath, result);
+
+    if (processed) {
         console.log(`File ${fileName} processed and saved to ${targetPath}`);
     }
 };

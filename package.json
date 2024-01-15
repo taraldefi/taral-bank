@@ -9,7 +9,8 @@
     "test:reports": "vitest run -- --coverage --costs",
     "test:watch": "chokidar \"unit-tests/**/*.ts\" \"contracts/**/*.clar\" -c \"npm t\"",
     "eol": "npx eolConverter \"contracts/**/*.clar\"",
-    "sync-contracts": "node --loader ts-node/esm sync-contracts.ts"
+    "sync-contracts": "node --loader ts-node/esm sync-contracts.ts",
+    "check-contracts": "yarn sync-contracts && clarinet check"
   },
   "author": "",
   "license": "ISC",
