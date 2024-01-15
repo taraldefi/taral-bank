@@ -6,7 +6,7 @@
     "lib": ["ESNext"],
     "skipLibCheck": true,
 
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -18,8 +18,13 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  },
   "include": [
     "node_modules/@hirosystems/clarinet-sdk/vitest-helpers/src",
-    "tests"
+    "tests",
+    "/**/*.ts"
   ]
 }

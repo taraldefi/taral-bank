@@ -5,9 +5,12 @@
   "description": "This repository is a base template to kick-start any Clarity project and build Smart Contracts on Bitcoin. You can use it as template to create your own project.",
   "main": "index.js",
   "scripts": {
-    "test": "vitest run -- --manifest-path ./Clarinet.toml",
+    "test": "vitest run -- --manifest-path ./Clarinet.simnet.toml",
     "test:reports": "vitest run -- --coverage --costs",
-    "test:watch": "chokidar \"unit-tests/**/*.ts\" \"contracts/**/*.clar\" -c \"npm t\""
+    "test:watch": "chokidar \"unit-tests/**/*.ts\" \"contracts/**/*.clar\" -c \"npm t\"",
+    "eol": "npx eolConverter \"contracts/**/*.clar\"",
+    "sync-contracts": "node --loader ts-node/esm sync-contracts.ts",
+    "check-contracts": "yarn sync-contracts && clarinet check"
   },
   "author": "",
   "license": "ISC",
@@ -15,6 +18,8 @@
     "@hirosystems/clarinet-sdk": "^1.0.4",
     "@stacks/transactions": "^6.8.1",
     "chokidar-cli": "^3.0.0",
+    "eol-converter-cli": "^1.0.8",
+    "ts-node": "^10.9.2",
     "typescript": "5.2.2",
     "vite": "^5.0.2",
     "vitest": "^1.0.4",

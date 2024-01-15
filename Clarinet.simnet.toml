@@ -3,19 +3,31 @@ name = 'taral-bank-mvp'
 description = 'Taral MVP bank contracts'
 authors = ["Taral team"]
 telemetry = false
-cache_dir = 'cache'
+cache_dir = 'contracts/external'
 boot_contracts = ["pox", "costs-v2"]
 
-[[project.requirements]]
-contract_id = "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-susdt"
+[contracts.trait-ownable]
+path = 'simnet-contracts/trait-ownable.clar'
+clarity_version = 2
+epoch = 2.4
+
+[contracts.trait-sip-010]
+path = 'simnet-contracts/trait-sip-010.clar'
+clarity_version = 2
+epoch = 2.4
+
+[contracts.token-susdt]
+path = 'simnet-contracts/token-susdt.clar'
+clarity_version = 2
+epoch = 2.4
 
 [contracts.taral-bank-storage]
-path = 'mainnet-contracts/taral-bank-storage.clar'
+path = 'simnet-contracts/taral-bank-storage.clar'
 clarity_version = 2
 epoch = 2.4
 
 [contracts.taral-bank]
-path = 'mainnet-contracts/taral-bank.clar'
+path = 'simnet-contracts/taral-bank.clar'
 clarity_version = 2
 epoch = 2.4
 
