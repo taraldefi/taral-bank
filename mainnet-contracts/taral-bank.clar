@@ -1,7 +1,7 @@
 ;; Version string
 (define-constant VERSION "0.0.5.beta")
 
-(define-data-var micro-multiplier uint u1000000)
+;; (define-data-var micro-multiplier uint u1000000)
 (define-data-var contract-owner principal tx-sender)
 (define-data-var protocol-interest-rate-per-annum uint u12) ;; 12% protocol interest
 (define-data-var payments-default-grace-period-in-days uint u5)
@@ -436,8 +436,8 @@
 ;; #[allow(unchecked_data)]
 (define-public (create-purchase-order (external-id (string-utf8 36)) (total-amount-usdt uint) (downpayment-usdt uint) (seller-id principal))
   (let (
-    (total-amount (* total-amount-usdt (var-get micro-multiplier)))
-    (downpayment (* downpayment-usdt (var-get micro-multiplier)))
+    (total-amount total-amount-usdt)
+    (downpayment downpayment-usdt)
     (borrower tx-sender)
     (active-purchase-order-id (contract-call? .taral-bank-storage get-active-purchase-order tx-sender))
 
