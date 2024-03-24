@@ -4,7 +4,7 @@ import { expectSUSDTTransfer } from './helpers/transfer';
 import { fastForwardDays, fastForwardMonths } from './helpers/time';
 import { describeConditional } from './describe.skip';
 import { RUN_TARAL_BANK_BULLET_TESTS } from './constants';
-import { MICRO_MULTIPLIER } from './helpers/currency';
+// import { MICRO_MULTIPLIER } from './helpers/currency';
 // import { hashStacksMessage, utf8ToBytes } from "lib-stacks";
 
 const describeOrSkip = describeConditional(RUN_TARAL_BANK_BULLET_TESTS);
@@ -44,7 +44,6 @@ describeOrSkip('Taral bank test flows', () => {
 				Cl.stringUtf8(PURCHASE_ORDER_ID),
 				Cl.uint(borrow),
 				Cl.uint(downPayment),
-				Cl.standardPrincipal(WALLET_2),
 			],
 			WALLET_1,
 		);
@@ -67,7 +66,7 @@ describeOrSkip('Taral bank test flows', () => {
 		);
 
 		// can't do it, I don't own the PO
-		expect(cancelPurchaseOrderResult.result).toBeErr(Cl.uint(134));
+		expect(cancelPurchaseOrderResult.result).toBeErr(Cl.uint(135));
 	}),
 		it('Should be able to create and cancel a purchase order', () => {
 			const purchaseOrderResult = simnet.callPublicFn(
@@ -77,7 +76,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -109,15 +107,14 @@ describeOrSkip('Taral bank test flows', () => {
 						'borrower-id': Cl.standardPrincipal(WALLET_1),
 						'completed-successfully': Cl.bool(false),
 						'created-at': Cl.uint(blockHeight),
-						'seller-id': Cl.standardPrincipal(WALLET_2),
 						'accepted-financing-id': Cl.none(),
 						'proposed-financing-id': Cl.none(),
-						'total-amount': Cl.uint(borrow),
+						'loan-amount': Cl.uint(borrow),
 						'lender-id': Cl.none(),
 						'is-canceled': Cl.bool(false),
 						'is-completed': Cl.bool(false),
 						'has-active-financing': Cl.bool(false),
-						'outstanding-amount': Cl.uint(borrow - downPayment),
+						'outstanding-amount': Cl.uint(borrow),
 						'updated-at': Cl.uint(blockHeight),
 						downpayment: Cl.uint(downPayment),
 					}),
@@ -168,15 +165,14 @@ describeOrSkip('Taral bank test flows', () => {
 						'borrower-id': Cl.standardPrincipal(WALLET_1),
 						'completed-successfully': Cl.bool(false),
 						'created-at': Cl.uint(initialBlockHeight),
-						'seller-id': Cl.standardPrincipal(WALLET_2),
 						'accepted-financing-id': Cl.none(),
 						'proposed-financing-id': Cl.none(),
-						'total-amount': Cl.uint(borrow),
+						'loan-amount': Cl.uint(borrow),
 						'lender-id': Cl.none(),
 						'is-canceled': Cl.bool(true),
 						'is-completed': Cl.bool(false),
 						'has-active-financing': Cl.bool(false),
-						'outstanding-amount': Cl.uint(borrow - downPayment),
+						'outstanding-amount': Cl.uint(borrow),
 						'updated-at': Cl.uint(blockHeight),
 						downpayment: Cl.uint(downPayment),
 					}),
@@ -200,7 +196,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -237,19 +232,19 @@ describeOrSkip('Taral bank test flows', () => {
 
 			expect(getPurchaseOrder.result).toBeOk(
 				Cl.tuple({
-					'total-amount': Cl.uint(borrow),
+					'loan-amount': Cl.uint(borrow),
 					downpayment: Cl.uint(downPayment),
-					interest: Cl.uint(30000000),
-					'outstanding-amount': Cl.uint(borrow - downPayment),
+					'outstanding-amount': Cl.uint(borrow),
 					'is-completed': Cl.bool(false),
 					'completed-successfully': Cl.bool(false),
 					'accepted-financing-id': Cl.none(),
+					'proposed-financing-id': Cl.none(),
 					'is-canceled': Cl.bool(false),
 					'has-active-financing': Cl.bool(false),
+					interest: Cl.uint(33000000),
 					'created-at': Cl.uint(blockHeight),
 					'updated-at': Cl.uint(blockHeight),
 					'is-defaulted': Cl.bool(false),
-					'proposed-financing-id': Cl.none(),
 				}),
 			);
 		}),
@@ -261,7 +256,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -293,15 +287,14 @@ describeOrSkip('Taral bank test flows', () => {
 						'borrower-id': Cl.standardPrincipal(WALLET_1),
 						'completed-successfully': Cl.bool(false),
 						'created-at': Cl.uint(blockHeight),
-						'seller-id': Cl.standardPrincipal(WALLET_2),
 						'accepted-financing-id': Cl.none(),
 						'proposed-financing-id': Cl.none(),
-						'total-amount': Cl.uint(borrow),
+						'loan-amount': Cl.uint(borrow),
 						'lender-id': Cl.none(),
 						'is-canceled': Cl.bool(false),
 						'is-completed': Cl.bool(false),
 						'has-active-financing': Cl.bool(false),
-						'outstanding-amount': Cl.uint(borrow - downPayment),
+						'outstanding-amount': Cl.uint(borrow),
 						'updated-at': Cl.uint(blockHeight),
 						downpayment: Cl.uint(downPayment),
 					}),
@@ -352,15 +345,14 @@ describeOrSkip('Taral bank test flows', () => {
 						'borrower-id': Cl.standardPrincipal(WALLET_1),
 						'completed-successfully': Cl.bool(false),
 						'created-at': Cl.uint(initialBlockHeight),
-						'seller-id': Cl.standardPrincipal(WALLET_2),
 						'accepted-financing-id': Cl.none(),
 						'proposed-financing-id': Cl.none(),
-						'total-amount': Cl.uint(borrow),
+						'loan-amount': Cl.uint(borrow),
 						'lender-id': Cl.none(),
 						'is-canceled': Cl.bool(true),
 						'is-completed': Cl.bool(false),
 						'has-active-financing': Cl.bool(false),
-						'outstanding-amount': Cl.uint(borrow - downPayment),
+						'outstanding-amount': Cl.uint(borrow),
 						'updated-at': Cl.uint(blockHeight),
 						downpayment: Cl.uint(downPayment),
 					}),
@@ -374,7 +366,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID_1),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -398,7 +389,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -421,12 +411,11 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID_1),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
 
-			expect(purchaseOrderResult.result).toBeErr(Cl.uint(135));
+			expect(purchaseOrderResult.result).toBeErr(Cl.uint(136));
 		}),
 		it("Should not be able to finance if it's the po borrower", () => {
 			const purchaseOrderResult = simnet.callPublicFn(
@@ -436,7 +425,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -460,42 +448,42 @@ describeOrSkip('Taral bank test flows', () => {
 				WALLET_1,
 			);
 
-			expect(placeFinancingResult.result).toBeErr(Cl.uint(127)); // financing id is 1
+			expect(placeFinancingResult.result).toBeErr(Cl.uint(128)); // financing id is 1
 		}),
-		it("Should not be able to finance if it's the po seller", () => {
-			const purchaseOrderResult = simnet.callPublicFn(
-				'taral-bank',
-				'create-purchase-order',
-				[
-					Cl.stringUtf8(PURCHASE_ORDER_ID),
-					Cl.uint(borrow),
-					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
-				],
-				WALLET_1,
-			);
+		// NOTE: in the new flow seller is not involved
+		// it("Should not be able to finance if it's the po seller", () => {
+		// 	const purchaseOrderResult = simnet.callPublicFn(
+		// 		'taral-bank',
+		// 		'create-purchase-order',
+		// 		[
+		// 			Cl.stringUtf8(PURCHASE_ORDER_ID),
+		// 			Cl.uint(borrow),
+		// 			Cl.uint(downPayment),
+		// 		],
+		// 		WALLET_1,
+		// 	);
 
-			expect(purchaseOrderResult.result).toBeOk(
-				Cl.stringUtf8(PURCHASE_ORDER_ID),
-			);
+		// 	expect(purchaseOrderResult.result).toBeOk(
+		// 		Cl.stringUtf8(PURCHASE_ORDER_ID),
+		// 	);
 
-			expectSUSDTTransfer(
-				purchaseOrderResult.events[0].data,
-				WALLET_1,
-				DEPLOYER,
-				downPayment,
-			);
+		// 	expectSUSDTTransfer(
+		// 		purchaseOrderResult.events[0].data,
+		// 		WALLET_1,
+		// 		DEPLOYER,
+		// 		downPayment,
+		// 	);
 
-			// place a financing offer
-			const placeFinancingResult = simnet.callPublicFn(
-				'taral-bank',
-				'finance',
-				[Cl.stringUtf8(PURCHASE_ORDER_ID)],
-				WALLET_2,
-			);
+		// 	// place a financing offer
+		// 	const placeFinancingResult = simnet.callPublicFn(
+		// 		'taral-bank',
+		// 		'finance',
+		// 		[Cl.stringUtf8(PURCHASE_ORDER_ID)],
+		// 		WALLET_2,
+		// 	);
 
-			expect(placeFinancingResult.result).toBeErr(Cl.uint(129)); // financing id is 1
-		}),
+		// 	expect(placeFinancingResult.result).toBeErr(Cl.uint(130)); // financing id is 1
+		// }),
 		it('Should not be able to place a financing if the po is canceled', () => {
 			const purchaseOrderResult = simnet.callPublicFn(
 				'taral-bank',
@@ -504,7 +492,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -547,7 +534,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -591,7 +577,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -623,7 +608,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			blockHeight++;
@@ -639,16 +624,11 @@ describeOrSkip('Taral bank test flows', () => {
 			const events = acceptFinancingResult.events.filter(
 				(event: any) => event.event === 'ft_transfer_event',
 			);
-			expectSUSDTTransfer(
-				events[0].data,
-				DEPLOYER,
-				WALLET_2,
-				borrow - downPayment,
-			);
+			expectSUSDTTransfer(events[0].data, DEPLOYER, WALLET_1, borrow);
 			expectSUSDTTransfer(
 				events[1].data,
 				DEPLOYER,
-				WALLET_2,
+				WALLET_1,
 				downPayment,
 			);
 
@@ -669,7 +649,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -701,7 +680,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			blockHeight++;
@@ -718,7 +697,7 @@ describeOrSkip('Taral bank test flows', () => {
 				cancelFinancingResult.events[0].data,
 				DEPLOYER,
 				WALLET_3,
-				borrow - downPayment,
+				borrow,
 			);
 		}),
 		it('Should not be able to cancel a financing offer if already refunded', () => {
@@ -729,7 +708,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -761,7 +739,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			blockHeight++;
@@ -778,7 +756,7 @@ describeOrSkip('Taral bank test flows', () => {
 				cancelFinancingResult.events[0].data,
 				DEPLOYER,
 				WALLET_3,
-				borrow - downPayment,
+				borrow,
 			);
 
 			cancelFinancingResult = simnet.callPublicFn(
@@ -798,7 +776,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2),
 				],
 				WALLET_1,
 			);
@@ -830,7 +807,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			blockHeight++;
@@ -847,7 +824,7 @@ describeOrSkip('Taral bank test flows', () => {
 				cancelFinancingResult.events[0].data,
 				DEPLOYER,
 				WALLET_3,
-				borrow - downPayment,
+				borrow,
 			);
 		}),
 		it('Should be able to place a financing offer and accept it', () => {
@@ -860,7 +837,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -889,7 +865,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			const acceptFinancingResult = simnet.callPublicFn(
@@ -903,16 +879,11 @@ describeOrSkip('Taral bank test flows', () => {
 			const events = acceptFinancingResult.events.filter(
 				(event: any) => event.event === 'ft_transfer_event',
 			);
-			expectSUSDTTransfer(
-				events[0].data,
-				DEPLOYER,
-				WALLET_2,
-				borrow - downPayment,
-			);
+			expectSUSDTTransfer(events[0].data, DEPLOYER, WALLET_1, borrow);
 			expectSUSDTTransfer(
 				events[1].data,
 				DEPLOYER,
-				WALLET_2,
+				WALLET_1,
 				downPayment,
 			);
 		}),
@@ -926,7 +897,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment + borrow),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -943,7 +913,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -971,7 +940,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			placeFinancingResult = simnet.callPublicFn(
@@ -993,7 +962,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -1021,7 +989,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			const acceptFinancingResult = simnet.callPublicFn(
@@ -1035,16 +1003,11 @@ describeOrSkip('Taral bank test flows', () => {
 			const events = acceptFinancingResult.events.filter(
 				(event: any) => event.event === 'ft_transfer_event',
 			);
-			expectSUSDTTransfer(
-				events[0].data,
-				DEPLOYER,
-				WALLET_2,
-				borrow - downPayment,
-			);
+			expectSUSDTTransfer(events[0].data, DEPLOYER, WALLET_1, borrow);
 			expectSUSDTTransfer(
 				events[1].data,
 				DEPLOYER,
-				WALLET_2,
+				WALLET_1,
 				downPayment,
 			);
 
@@ -1066,7 +1029,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -1094,7 +1056,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			const acceptFinancingResult = simnet.callPublicFn(
@@ -1108,16 +1070,11 @@ describeOrSkip('Taral bank test flows', () => {
 			const events = acceptFinancingResult.events.filter(
 				(event: any) => event.event === 'ft_transfer_event',
 			);
-			expectSUSDTTransfer(
-				events[0].data,
-				DEPLOYER,
-				WALLET_2,
-				borrow - downPayment,
-			);
+			expectSUSDTTransfer(events[0].data, DEPLOYER, WALLET_1, borrow);
 			expectSUSDTTransfer(
 				events[1].data,
 				DEPLOYER,
-				WALLET_2,
+				WALLET_1,
 				downPayment,
 			);
 
@@ -1182,7 +1139,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -1210,7 +1166,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			const acceptFinancingResult = simnet.callPublicFn(
@@ -1224,16 +1180,11 @@ describeOrSkip('Taral bank test flows', () => {
 			const events = acceptFinancingResult.events.filter(
 				(event: any) => event.event === 'ft_transfer_event',
 			);
-			expectSUSDTTransfer(
-				events[0].data,
-				DEPLOYER,
-				WALLET_2,
-				borrow - downPayment,
-			);
+			expectSUSDTTransfer(events[0].data, DEPLOYER, WALLET_1, borrow);
 			expectSUSDTTransfer(
 				events[1].data,
 				DEPLOYER,
-				WALLET_2,
+				WALLET_1,
 				downPayment,
 			);
 
@@ -1303,7 +1254,7 @@ describeOrSkip('Taral bank test flows', () => {
 				`${DEPLOYER}`,
 			);
 			expect(interestTransferEvent.amount).toStrictEqual(
-				`${((borrow - downPayment) * 3) / 100}`,
+				`${(borrow * 3) / 100}`,
 			);
 
 			const principalTransferEvent = transferEvents[1].data as any;
@@ -1315,9 +1266,7 @@ describeOrSkip('Taral bank test flows', () => {
 			expect(principalTransferEvent.recipient).toStrictEqual(
 				`${WALLET_3}`,
 			);
-			expect(principalTransferEvent.amount).toStrictEqual(
-				`${borrow - downPayment}`,
-			);
+			expect(principalTransferEvent.amount).toStrictEqual(`${borrow}`);
 
 			const getPaymentDetails = simnet.callReadOnlyFn(
 				'taral-bank',
@@ -1341,7 +1290,7 @@ describeOrSkip('Taral bank test flows', () => {
 
 			expect(getPurchaseOrder.result).toBeOk(
 				Cl.tuple({
-					'total-amount': Cl.uint(borrow),
+					'loan-amount': Cl.uint(borrow),
 					downpayment: Cl.uint(downPayment),
 					'outstanding-amount': Cl.uint(0),
 					'is-completed': Cl.bool(true),
@@ -1379,7 +1328,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -1407,7 +1355,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			const acceptFinancingResult = simnet.callPublicFn(
@@ -1421,16 +1369,11 @@ describeOrSkip('Taral bank test flows', () => {
 			const events = acceptFinancingResult.events.filter(
 				(event: any) => event.event === 'ft_transfer_event',
 			);
-			expectSUSDTTransfer(
-				events[0].data,
-				DEPLOYER,
-				WALLET_2,
-				borrow - downPayment,
-			);
+			expectSUSDTTransfer(events[0].data, DEPLOYER, WALLET_1, borrow);
 			expectSUSDTTransfer(
 				events[1].data,
 				DEPLOYER,
-				WALLET_2,
+				WALLET_1,
 				downPayment,
 			);
 
@@ -1500,7 +1443,7 @@ describeOrSkip('Taral bank test flows', () => {
 				`${DEPLOYER}`,
 			);
 			expect(interestTransferEvent.amount).toStrictEqual(
-				`${((borrow - downPayment) * 3) / 100}`,
+				`${(borrow * 3) / 100}`,
 			);
 
 			const principalTransferEvent = transferEvents[1].data as any;
@@ -1512,9 +1455,7 @@ describeOrSkip('Taral bank test flows', () => {
 			expect(principalTransferEvent.recipient).toStrictEqual(
 				`${WALLET_3}`,
 			);
-			expect(principalTransferEvent.amount).toStrictEqual(
-				`${borrow - downPayment}`,
-			);
+			expect(principalTransferEvent.amount).toStrictEqual(`${borrow}`);
 
 			const getPaymentDetails = simnet.callReadOnlyFn(
 				'taral-bank',
@@ -1538,7 +1479,7 @@ describeOrSkip('Taral bank test flows', () => {
 
 			expect(getPurchaseOrder.result).toBeOk(
 				Cl.tuple({
-					'total-amount': Cl.uint(borrow),
+					'loan-amount': Cl.uint(borrow),
 					downpayment: Cl.uint(downPayment),
 					'outstanding-amount': Cl.uint(0),
 					'is-completed': Cl.bool(true),
@@ -1575,7 +1516,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID_1),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -1598,7 +1538,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -1626,7 +1565,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			const acceptFinancingResult = simnet.callPublicFn(
@@ -1640,16 +1579,11 @@ describeOrSkip('Taral bank test flows', () => {
 			const events = acceptFinancingResult.events.filter(
 				(event: any) => event.event === 'ft_transfer_event',
 			);
-			expectSUSDTTransfer(
-				events[0].data,
-				DEPLOYER,
-				WALLET_2,
-				borrow - downPayment,
-			);
+			expectSUSDTTransfer(events[0].data, DEPLOYER, WALLET_1, borrow);
 			expectSUSDTTransfer(
 				events[1].data,
 				DEPLOYER,
-				WALLET_2,
+				WALLET_1,
 				downPayment,
 			);
 
@@ -1719,7 +1653,7 @@ describeOrSkip('Taral bank test flows', () => {
 				`${DEPLOYER}`,
 			);
 			expect(interestTransferEvent.amount).toStrictEqual(
-				`${((borrow - downPayment) * 3) / 100}`,
+				`${(borrow * 3) / 100}`,
 			);
 
 			const principalTransferEvent = transferEvents[1].data as any;
@@ -1731,9 +1665,7 @@ describeOrSkip('Taral bank test flows', () => {
 			expect(principalTransferEvent.recipient).toStrictEqual(
 				`${WALLET_3}`,
 			);
-			expect(principalTransferEvent.amount).toStrictEqual(
-				`${borrow - downPayment}`,
-			);
+			expect(principalTransferEvent.amount).toStrictEqual(`${borrow}`);
 
 			const getPaymentDetails = simnet.callReadOnlyFn(
 				'taral-bank',
@@ -1755,7 +1687,7 @@ describeOrSkip('Taral bank test flows', () => {
 				WALLET_1,
 			);
 
-			expect(makePaymentResult.result).toBeErr(Cl.uint(134));
+			expect(makePaymentResult.result).toBeErr(Cl.uint(135));
 		}),
 		it('Should not be able to reject financing if already accepted', () => {
 			const purchaseOrderResult = simnet.callPublicFn(
@@ -1765,7 +1697,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -1793,7 +1724,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			const acceptFinancingResult = simnet.callPublicFn(
@@ -1807,16 +1738,11 @@ describeOrSkip('Taral bank test flows', () => {
 			const events = acceptFinancingResult.events.filter(
 				(event: any) => event.event === 'ft_transfer_event',
 			);
-			expectSUSDTTransfer(
-				events[0].data,
-				DEPLOYER,
-				WALLET_2,
-				borrow - downPayment,
-			);
+			expectSUSDTTransfer(events[0].data, DEPLOYER, WALLET_1, borrow);
 			expectSUSDTTransfer(
 				events[1].data,
 				DEPLOYER,
-				WALLET_2,
+				WALLET_1,
 				downPayment,
 			);
 
@@ -1839,7 +1765,6 @@ describeOrSkip('Taral bank test flows', () => {
 
 				Cl.uint(borrow),
 				Cl.uint(downPayment),
-				Cl.standardPrincipal(WALLET_2), // the seller
 			],
 			WALLET_1,
 		);
@@ -1867,7 +1792,7 @@ describeOrSkip('Taral bank test flows', () => {
 			placeFinancingResult.events[0].data,
 			WALLET_3,
 			DEPLOYER,
-			borrow - downPayment,
+			borrow,
 		);
 
 		const acceptFinancingResult = simnet.callPublicFn(
@@ -1881,13 +1806,8 @@ describeOrSkip('Taral bank test flows', () => {
 		const events = acceptFinancingResult.events.filter(
 			(event: any) => event.event === 'ft_transfer_event',
 		);
-		expectSUSDTTransfer(
-			events[0].data,
-			DEPLOYER,
-			WALLET_2,
-			borrow - downPayment,
-		);
-		expectSUSDTTransfer(events[1].data, DEPLOYER, WALLET_2, downPayment);
+		expectSUSDTTransfer(events[0].data, DEPLOYER, WALLET_1, borrow);
+		expectSUSDTTransfer(events[1].data, DEPLOYER, WALLET_1, downPayment);
 
 		let hasPoDefaulted = simnet.callReadOnlyFn(
 			'taral-bank',
@@ -1992,7 +1912,7 @@ describeOrSkip('Taral bank test flows', () => {
 			WALLET_1,
 		);
 
-		expect(makePaymentResult.result).toBeErr(Cl.uint(130)); // cannot make payments anymore, po is defaulted
+		expect(makePaymentResult.result).toBeErr(Cl.uint(131)); // cannot make payments anymore, po is defaulted
 		hasPoDefaulted = simnet.callReadOnlyFn(
 			'taral-bank',
 			'is-po-defaulted',
@@ -2011,14 +1931,14 @@ describeOrSkip('Taral bank test flows', () => {
 
 		expect(getPurchaseOrder.result).toBeOk(
 			Cl.tuple({
-				'total-amount': Cl.uint(borrow),
+				'loan-amount': Cl.uint(borrow),
 				downpayment: Cl.uint(downPayment),
-				'outstanding-amount': Cl.uint(1000000000),
+				'outstanding-amount': Cl.uint(1100000000),
 				'is-completed': Cl.bool(true),
 				'accepted-financing-id': Cl.some(Cl.uint(1)),
 				'proposed-financing-id': Cl.some(Cl.uint(1)),
 				'is-canceled': Cl.bool(false),
-				interest: Cl.uint(30000000),
+				interest: Cl.uint(33000000),
 				'created-at': Cl.uint(2),
 				'completed-successfully': Cl.bool(false),
 				'has-active-financing': Cl.bool(true),
@@ -2035,7 +1955,6 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
@@ -2063,7 +1982,7 @@ describeOrSkip('Taral bank test flows', () => {
 				placeFinancingResult.events[0].data,
 				WALLET_3,
 				DEPLOYER,
-				borrow - downPayment,
+				borrow,
 			);
 
 			const acceptFinancingResult = simnet.callPublicFn(
@@ -2077,16 +1996,11 @@ describeOrSkip('Taral bank test flows', () => {
 			const events = acceptFinancingResult.events.filter(
 				(event: any) => event.event === 'ft_transfer_event',
 			);
-			expectSUSDTTransfer(
-				events[0].data,
-				DEPLOYER,
-				WALLET_2,
-				borrow - downPayment,
-			);
+			expectSUSDTTransfer(events[0].data, DEPLOYER, WALLET_1, borrow);
 			expectSUSDTTransfer(
 				events[1].data,
 				DEPLOYER,
-				WALLET_2,
+				WALLET_1,
 				downPayment,
 			);
 
@@ -2193,7 +2107,7 @@ describeOrSkip('Taral bank test flows', () => {
 				WALLET_1,
 			);
 
-			expect(makePaymentResult.result).toBeErr(Cl.uint(130)); // cannot make payments anymore, po is defaulted
+			expect(makePaymentResult.result).toBeErr(Cl.uint(131)); // cannot make payments anymore, po is defaulted
 
 			hasPoDefaulted = simnet.callReadOnlyFn(
 				'taral-bank',
@@ -2214,13 +2128,13 @@ describeOrSkip('Taral bank test flows', () => {
 				Cl.tuple({
 					'created-at': Cl.uint(2),
 					downpayment: Cl.uint(downPayment),
-					interest: Cl.uint(30000000),
+					interest: Cl.uint(33000000),
 					'is-canceled': Cl.bool(false),
 					'is-completed': Cl.bool(true),
 					'is-defaulted': Cl.bool(true),
-					'outstanding-amount': Cl.uint(1000000000),
+					'outstanding-amount': Cl.uint(1100000000),
 					'proposed-financing-id': Cl.some(Cl.uint(1)),
-					'total-amount': Cl.uint(borrow),
+					'loan-amount': Cl.uint(borrow),
 					'updated-at': Cl.uint(14263),
 					'accepted-financing-id': Cl.some(Cl.uint(1)),
 					'completed-successfully': Cl.bool(false),
@@ -2235,11 +2149,10 @@ describeOrSkip('Taral bank test flows', () => {
 					Cl.stringUtf8(PURCHASE_ORDER_ID_1),
 					Cl.uint(borrow),
 					Cl.uint(downPayment),
-					Cl.standardPrincipal(WALLET_2), // the seller
 				],
 				WALLET_1,
 			);
 
-			expect(purchaseOrderResult.result).toBeErr(Cl.uint(135));
+			expect(purchaseOrderResult.result).toBeErr(Cl.uint(136));
 		});
 });

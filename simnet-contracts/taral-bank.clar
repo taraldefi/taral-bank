@@ -1,5 +1,5 @@
 ;; Version string
-(define-constant VERSION "0.0.5.beta")
+(define-constant VERSION "1.0.5.beta")
 
 ;; (define-data-var micro-multiplier uint u1000000)
 (define-data-var contract-owner principal tx-sender)
@@ -21,7 +21,6 @@
 (define-constant ERR_NO_LENDER_FOR_PURCHASE_ORDER u105)
 (define-constant ERR_FAILED_TO_UPDATE_LENDER_TRACK_RECORD u106)
 (define-constant ERR_FAILED_TO_UPDATE_BORROWER_TRACK_RECORD u107)
-(define-constant ERR_FAILED_TO_UPDATE_SELLER_TRACK_RECORD u108)
 (define-constant ERR_NO_MISSED_PAYMENTS u109)
 (define-constant ERR_NO_LENDER_FOR_FINANCING u110)
 (define-constant ERR_CANNOT_MODIFY_ACCEPTED_FINANCING u111)
@@ -40,16 +39,16 @@
 (define-constant ERR_PURCHASE_ORDER_CANCELED u123)
 (define-constant ERR_CANNOT_REJECT_ACCEPTED_FINANCING u124)
 (define-constant ERR_DOWNPAYMENT_TOO_LARGE u125)
-(define-constant ERR_COULD_NOT_TRANSFER_FUNDS_TO_SELLER u126)
-(define-constant ERR_BORROWER_CANNOT_FINANCE_THEMSELVES u127)
-(define-constant ERR_PAYMENTS_MISSED u128)
-(define-constant ERR_SELLER_CANNOT_FINANCE_THEIR_PO u129)
-(define-constant CANNOT_MAKE_PAYMENT_PO_COMPLETED u130)
-(define-constant COULD_NOT_UNWRAP u131)
-(define-constant ERR_CONTRACT_PAUSED u132)
-(define-constant ERR_STORAGE_INTERACTION_FAILED u133)
-(define-constant ERR_NO_ACTIVE_PURCHASE_ORDER u134)
-(define-constant ERR_ACTIVE_PURCHASE_ORDER u135)
+(define-constant ERR_DOWNPAYMENT_TOO_SMALL u126)
+(define-constant ERR_COULD_NOT_TRANSFER_FUNDS_TO_BUYER u127)
+(define-constant ERR_BORROWER_CANNOT_FINANCE_THEMSELVES u128)
+(define-constant ERR_PAYMENTS_MISSED u129)
+(define-constant CANNOT_MAKE_PAYMENT_PO_COMPLETED u131)
+(define-constant COULD_NOT_UNWRAP u132)
+(define-constant ERR_CONTRACT_PAUSED u133)
+(define-constant ERR_STORAGE_INTERACTION_FAILED u134)
+(define-constant ERR_NO_ACTIVE_PURCHASE_ORDER u135)
+(define-constant ERR_ACTIVE_PURCHASE_ORDER u136)
 
 (define-constant ERR_UNAUTHORIZED u401)
 
@@ -155,7 +154,7 @@
       (interest-for-payment ( - (/ ( + (* outstanding-amount u100) (* outstanding-amount interest-rate-per-payment)) u100) outstanding-amount))          
     )
     (ok { 
-      total-amount: (get total-amount po),
+      loan-amount: (get loan-amount po),
       downpayment: (get downpayment po),
       outstanding-amount: (get outstanding-amount po),
       is-completed: (get is-completed po),
@@ -184,7 +183,7 @@
       (interest-for-payment ( - (/ ( + (* outstanding-amount u100) (* outstanding-amount interest-rate-per-payment)) u100) outstanding-amount))          
     )
     (ok { 
-      total-amount: (get total-amount po),
+      loan-amount: (get loan-amount po),
       downpayment: (get downpayment po),
       outstanding-amount: (get outstanding-amount po),
       is-completed: (get is-completed po),
@@ -211,6 +210,8 @@
   )
 )
 
+;; #[allow(unchecked_params)]
+;; #[allow(unchecked_data)]
 (define-public (update-protocol-interest-rate-per-annum (new-interest-rate uint))
   (begin
     (asserts! (is-eq tx-sender (var-get contract-owner)) (err ERR_UNAUTHORIZED))
@@ -219,6 +220,8 @@
   )
 )
 
+;; #[allow(unchecked_params)]
+;; #[allow(unchecked_data)]
 (define-public (update-protocol-due-date (new-due-date uint))
   (begin
     (asserts! (is-eq tx-sender (var-get contract-owner)) (err ERR_UNAUTHORIZED))
@@ -227,6 +230,8 @@
   )
 )
 
+;; #[allow(unchecked_params)]
+;; #[allow(unchecked_data)]
 (define-public (update-grace-period-in-days (new-grace-period uint))
   (begin
     (asserts! (is-eq tx-sender (var-get contract-owner)) (err ERR_UNAUTHORIZED))
@@ -251,7 +256,10 @@
   )
 )
 
+
 ;; Function to update the block time (restricted to contract owner or authorized users)
+;; #[allow(unchecked_params)]
+;; #[allow(unchecked_data)]
 (define-public (set-blocks-time-in-seconds (new-block-time uint))
   (begin
     (asserts! (is-eq tx-sender (var-get contract-owner)) (err ERR_UNAUTHORIZED))
@@ -295,7 +303,7 @@
         (
             (interest-transfer-result (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt transfer 
                                         interest-for-payment
-                                        (get borrower-id po) 
+                                        borrower-id
                                         (var-get contract-owner)
                                         none))
         )
@@ -434,10 +442,8 @@
 ;; Create Purchase Order
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
-(define-public (create-purchase-order (external-id (string-utf8 36)) (total-amount-usdt uint) (downpayment-usdt uint) (seller-id principal))
+(define-public (create-purchase-order (external-id (string-utf8 36)) (loan-amount uint) (downpayment uint))
   (let (
-    (total-amount total-amount-usdt)
-    (downpayment downpayment-usdt)
     (borrower tx-sender)
     (active-purchase-order-id (contract-call? .taral-bank-storage get-active-purchase-order tx-sender))
 
@@ -447,8 +453,10 @@
     (asserts! (is-none active-purchase-order-id) (err ERR_ACTIVE_PURCHASE_ORDER))
     (asserts! (not (var-get contract-paused)) (err ERR_CONTRACT_PAUSED))
 
-    ;; ensure the downpayment is less than the total amount
-    (asserts! (< downpayment total-amount) (err ERR_DOWNPAYMENT_TOO_LARGE))
+    ;; check downpayment is less than the loan amount
+    (asserts! (< downpayment loan-amount) (err ERR_DOWNPAYMENT_TOO_LARGE))
+    ;; check downpayment is greater than or equal to 20% of the loan amount
+    (asserts! (>= downpayment (* (/ u20 u100) loan-amount)) (err ERR_DOWNPAYMENT_TOO_SMALL))
 
     (if (is-ok (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt transfer downpayment tx-sender (as-contract tx-sender) none))
         (begin
@@ -458,10 +466,9 @@
               id: external-id,
               borrower-id: borrower,
               lender-id: none,
-              seller-id: seller-id,
-              total-amount: total-amount,
+              loan-amount: loan-amount,
               downpayment: downpayment,
-              outstanding-amount: (- total-amount downpayment),
+              outstanding-amount: loan-amount,
               is-completed: false,
               completed-successfully: false,
               accepted-financing-id: none,
@@ -513,21 +520,21 @@
 
 ;; #[allow(unchecked_params)]
 ;; #[allow(unchecked_data)]
+;; called by the lender
 (define-public (finance (purchase-order-id (string-utf8 36)))
   (let 
     (
       (po (unwrap! (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id) (err ERR_PURCHASE_ORDER_NOT_FOUND)))
-      (total-amount (- (get total-amount po) (get downpayment po)))
+      (loan-amount (get loan-amount po))
       (the-lender tx-sender)
   )
     (asserts! (or (not (var-get contract-paused)) (is-eq tx-sender (var-get contract-owner))) (err ERR_CONTRACT_PAUSED))
     (asserts! (not (is-eq (get borrower-id po) tx-sender)) (err ERR_BORROWER_CANNOT_FINANCE_THEMSELVES))
-    (asserts! (not (is-eq (get seller-id po) tx-sender)) (err ERR_SELLER_CANNOT_FINANCE_THEIR_PO))
     (asserts! (not (get is-canceled po)) (err ERR_PURCHASE_ORDER_CANCELED))
     (asserts! (not (get has-active-financing po)) (err ERR_PO_HAS_ACTIVE_FINANCING))
 
     ;; Transfer the financing offer amount from the lender to the contract
-    (if (is-ok (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt transfer total-amount tx-sender (as-contract tx-sender) none))
+    (if (is-ok (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt transfer loan-amount tx-sender (as-contract tx-sender) none))
         (begin
           (unwrap! (as-contract (contract-call? .taral-bank-storage update-purchase-order purchase-order-id (merge po { 
             updated-at: block-height,
@@ -537,7 +544,7 @@
           (ok (unwrap! (as-contract (contract-call? .taral-bank-storage set-financing
             {
               purchase-order-id: purchase-order-id,
-              financing-amount: total-amount,
+              financing-amount: loan-amount,
               lender-id: the-lender,
               is-accepted: false,
               interest-rate: (interest-per-payment),
@@ -634,15 +641,15 @@
     (asserts! (is-none (get accepted-financing-id po)) (err ERR_PO_HAS_ACTIVE_FINANCING))
 
     (asserts! (or (not (var-get contract-paused)) (is-eq tx-sender (var-get contract-owner))) (err ERR_CONTRACT_PAUSED))
-    ;; Update purchase order with details from the accepted financing
-    (if (is-ok (as-contract (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt transfer (get financing-amount financing) tx-sender (get seller-id po) none)))
+    ;; Wire downpayment and loan amount to the buyer
+    (if (is-ok (as-contract (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt transfer (get financing-amount financing) tx-sender (get borrower-id po) none)))
         (begin
-          (if (is-ok (as-contract (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt transfer (get downpayment po) tx-sender (get seller-id po) none)))
+          (if (is-ok (as-contract (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt transfer (get downpayment po) tx-sender (get borrower-id po) none)))
             (begin
 
               (unwrap! (as-contract (contract-call? .taral-bank-storage update-purchase-order (get purchase-order-id financing) (merge po 
                   {
-                    outstanding-amount: (- (get total-amount po) (get downpayment po)),
+                    outstanding-amount: (get loan-amount po),
                     accepted-financing-id: (some proposed-financing-id),
                     has-active-financing: true,
                     updated-at: block-height,
@@ -657,10 +664,10 @@
                   })
               )) (err ERR_STORAGE_INTERACTION_FAILED)))
             )
-            (err ERR_COULD_NOT_TRANSFER_FUNDS_TO_SELLER)
+            (err ERR_COULD_NOT_TRANSFER_FUNDS_TO_BUYER)
           )
         )
-      (err ERR_COULD_NOT_TRANSFER_FUNDS_TO_SELLER)
+      (err ERR_COULD_NOT_TRANSFER_FUNDS_TO_BUYER)
     )
   )
 )
@@ -702,7 +709,6 @@
         (po (unwrap! (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id) (err ERR_PURCHASE_ORDER_NOT_FOUND)))
         (lender-id (unwrap! (get lender-id po) (err ERR_NO_LENDER_ASSOCIATED_WITH_PURCHASE_ORDER)))
         (borrower-id (get borrower-id po))
-        (seller-id (get seller-id po))
     )
 
     (ok true)
@@ -714,7 +720,6 @@
         (po (unwrap! (contract-call? .taral-bank-storage get-purchase-order-by-id purchase-order-id) (err ERR_PURCHASE_ORDER_NOT_FOUND)))
         (lender-id (unwrap! (get lender-id po) (err ERR_NO_LENDER_ASSOCIATED_WITH_PURCHASE_ORDER)))
         (borrower-id (get borrower-id po))
-        (seller-id (get seller-id po))
     )
 
     (ok true)
