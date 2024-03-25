@@ -11,7 +11,7 @@ plan:
         - contract-publish:
             contract-name: taral-bank-storage
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 105310
+            cost: 103880
             path: simnet-contracts/taral-bank-storage.clar
             anchor-block-only: true
             clarity-version: 2
@@ -39,7 +39,7 @@ plan:
         - contract-publish:
             contract-name: taral-bank
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 307050
+            cost: 305700
             path: simnet-contracts/taral-bank.clar
             anchor-block-only: true
             clarity-version: 2

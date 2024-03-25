@@ -22,9 +22,8 @@
   {
     borrower-id: principal,
     lender-id: (optional principal),
-    seller-id: principal,
-    total-amount: uint,
     downpayment: uint,
+    loan-amount: uint,
     outstanding-amount: uint,
     is-completed: bool,
     completed-successfully: bool,
@@ -78,6 +77,8 @@
   (map-get? active-purchase-orders borrower-id)
 )
 
+;; #[allow(unchecked_params)]
+;; #[allow(unchecked_data)]
 (define-public (update-authorized-contract-caller (new-authorized-contract-caller principal))
   (begin
     (asserts! (is-eq tx-sender (var-get contract-owner)) (err ERR_UNAUTHORIZED))
@@ -214,8 +215,7 @@
 (define-public (update-purchase-order (id (string-utf8 36)) (po {
   borrower-id: principal,
   lender-id: (optional principal),
-  seller-id: principal,
-  total-amount: uint,
+  loan-amount: uint,
   downpayment: uint,
   outstanding-amount: uint,
   is-completed: bool,
@@ -239,9 +239,8 @@
                             {
                               borrower-id: (get borrower-id po),
                               lender-id: (get lender-id po),
-                              seller-id: (get seller-id po),
-                              total-amount: (get total-amount po),
                               downpayment: (get downpayment po),
+                              loan-amount: (get loan-amount po),
                               outstanding-amount: (get outstanding-amount po),
                               is-completed: (get is-completed po),
                               completed-successfully: (get completed-successfully po),
@@ -262,8 +261,7 @@
   id: (string-utf8 36),
   borrower-id: principal,
   lender-id: (optional principal),
-  seller-id: principal,
-  total-amount: uint,
+  loan-amount: uint,
   downpayment: uint,
   outstanding-amount: uint,
   is-completed: bool,
@@ -285,9 +283,8 @@
                           {
                             borrower-id: (get borrower-id po),
                             lender-id: (get lender-id po),
-                            seller-id: (get seller-id po),
-                            total-amount: (get total-amount po),
                             downpayment: (get downpayment po),
+                            loan-amount: (get loan-amount po),
                             outstanding-amount: (get outstanding-amount po),
                             is-completed: (get is-completed po),
                             completed-successfully: (get completed-successfully po),
