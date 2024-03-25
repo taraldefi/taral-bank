@@ -456,7 +456,7 @@
     ;; check downpayment is less than the loan amount
     (asserts! (< downpayment loan-amount) (err ERR_DOWNPAYMENT_TOO_LARGE))
     ;; check downpayment is greater than or equal to 20% of the loan amount
-    (asserts! (>= downpayment (* (/ u20 u100) loan-amount)) (err ERR_DOWNPAYMENT_TOO_SMALL))
+    (asserts! (>= downpayment (/ (* u20 loan-amount) u100)) (err ERR_DOWNPAYMENT_TOO_SMALL))
 
     (if (is-ok (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token-susdt transfer downpayment tx-sender (as-contract tx-sender) none))
         (begin

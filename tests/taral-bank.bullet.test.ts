@@ -14,8 +14,10 @@ const PURCHASE_ORDER_ID = '4bd10c63-67ac-43e0-8fc3-7727fc9bd642';
 const PURCHASE_ORDER_ID_1 = 'dda670dd-6b33-4f76-8780-09b156783954';
 
 describeOrSkip('Taral bank test flows', () => {
+	//loan amount
 	const borrow = 1100000000;
-	const downPayment = 100000000;
+	//20% of loan amount
+	const downPayment = 220000000;
 	const financingId = 1;
 
 	const accounts = simnet.getAccounts();
@@ -902,6 +904,21 @@ describeOrSkip('Taral bank test flows', () => {
 			);
 
 			expect(purchaseOrderResult.result).toBeErr(Cl.uint(125));
+		}),
+		it('Should not be able to create a purchase order if downpayment is less than 20% of loan amount', () => {
+			const purchaseOrderResult = simnet.callPublicFn(
+				'taral-bank',
+				'create-purchase-order',
+				[
+					Cl.stringUtf8(PURCHASE_ORDER_ID),
+					Cl.uint(100 * Math.pow(10, 6)),
+					Cl.uint(10 * Math.pow(10, 6)),
+				],
+
+				WALLET_1,
+			);
+
+			expect(purchaseOrderResult.result).toBeErr(Cl.uint(126));
 		}),
 		it('Should not be able to place a financing offer after another one has been placed', () => {
 			const financingId = 1;
